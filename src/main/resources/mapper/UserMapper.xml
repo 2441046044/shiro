@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qfedu.shiro.dao.UserDao">
+    <resultMap id="menuMap" type="com.qfedu.shiro.entity.MenuInfo">
+        <id property="menuId" column="pid" />
+        <result property="menuName" column="pname"/>
+        <result property="url" column="url"/>
+        <collection property="childMenus" javaType="list" ofType="com.qfedu.shiro.entity.MenuInfo">
+            <id property="menuId" column="cid" />
+            <result property="menuName" column="cname"/>
+            <result property="url" column="curl"/>
+        </collection>
+    </resultMap>
+
+
+
+    <select id="findMenuInfo" parameterType="int" resultMap="menuMap">
+        select p.pid, p.pname,p.url,c.pid cid,c.pname cname,c.url curl from t_permision p
+        INNER JOIN t_permision c
+        on c.parentId = p.pid
+        INNER JOIN t_role_perm rp
+        on rp.pid = c.pid
+        INNER JOIN t_user_role ur
+        on ur.rid = rp.rid
+        where c.type = 1 and ur.uid = #{uid}
+    </select>
+
+
+    <select id="findByName" parameterType="string" resultType="user">
+        select  * from t_user where uname =#{name}
+    </select>
+
+    <select id="findPermsByName" parameterType="string" resultType="string">
+        select DISTINCT p.pdesc from t_user u
+        INNER JOIN t_user_role ur
+        ON u.uid = ur.uid
+        INNER JOIN t_role_perm rp
+        ON ur.rid = rp.rid
+        INNER JOIN t_permision p
+        ON rp.pid = p.pid
+        WHERE u.uname = #{name} AND p.pdesc != '' AND p.pdesc is not NULL
+    </select>
+
+</mapper>
